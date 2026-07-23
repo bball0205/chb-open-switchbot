@@ -2,8 +2,9 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>開啟 SwitchBot</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:1.5rem;line-height:1.45;background:#f6f7f8;color:#111}
     h1{font-size:1.35rem;margin:0 0 .75rem}
@@ -14,22 +15,57 @@
 </head>
 <body>
   <h1>開啟 SwitchBot</h1>
-  <p>Telegram 不能直接開 App，請點下面按鈕（會嘗試喚起已安裝的 SwitchBot）：</p>
-  <a class="btn" href="switchbot://">開啟 SwitchBot</a>
+  <p id="status">正在開啟 SwitchBot…</p>
+  <a class="btn" id="main" href="switchbot://">開啟 SwitchBot</a>
   <a class="btn alt" href="wohand://">開啟（備用 wohand://）</a>
   <a class="btn alt" href="switch-bot://">開啟（備用 switch-bot://）</a>
-  <p class="muted">若三個都沒反應，代表 App 沒有公開網址協定，需改用 iOS「捷徑」或 SwitchBot API。</p>
+  <p class="muted">若已跳到 SwitchBot，此視窗應會自動關閉；沒關再點左上角關閉即可。</p>
   <script>
-    // Best-effort auto open (Telegram in-app browser may block; buttons still work)
     const schemes = ['switchbot://', 'wohand://', 'switch-bot://'];
-    let i = 0;
-    function kick() {
-      if (i >= schemes.length) return;
-      const u = schemes[i++];
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const isTg = !!(tg && tg.initData !== undefined);
+
+    function openScheme(u) {
+      // Prefer navigating; also poke a hidden iframe (some WebViews need it)
+      try {
+        const ifr = document.createElement('iframe');
+        ifr.style.display = 'none';
+        ifr.src = u;
+        document.body.appendChild(ifr);
+      } catch (e) {}
       try { window.location.href = u; } catch (e) {}
-      setTimeout(kick, 600);
     }
-    setTimeout(kick, 200);
+
+    function closeTgSoon(ms) {
+      if (!isTg || !tg.close) return;
+      setTimeout(function () {
+        try { tg.close(); } catch (e) {}
+      }, ms);
+      // second attempt — first may race with app switch
+      setTimeout(function () {
+        try { tg.close(); } catch (e) {}
+      }, ms + 700);
+    }
+
+    if (isTg) {
+      try { tg.ready(); } catch (e) {}
+      try { tg.expand(); } catch (e) {}
+      document.getElementById('status').textContent = '已從 Telegram 開啟，正在跳轉並自動關閉…';
+      openScheme(schemes[0]);
+      // After handing off to SwitchBot, close this Mini App sheet
+      closeTgSoon(500);
+      // Fallback: try next schemes if still here
+      setTimeout(function () { openScheme(schemes[1]); }, 900);
+      setTimeout(function () { openScheme(schemes[2]); }, 1500);
+      closeTgSoon(1800);
+    } else {
+      document.getElementById('status').textContent = '請點下面按鈕開啟 SwitchBot：';
+      setTimeout(function () { openScheme(schemes[0]); }, 200);
+    }
+
+    document.getElementById('main').addEventListener('click', function () {
+      closeTgSoon(400);
+    });
   </script>
 </body>
 </html>
