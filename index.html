@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>開啟 SwitchBot</title>
+  <style>
+    body{font-family:-apple-system,sans-serif;margin:2rem;line-height:1.5}
+    a.btn{display:inline-block;padding:.9rem 1.2rem;margin:.4rem 0;background:#0b6;color:#fff;text-decoration:none;border-radius:10px;font-size:1.1rem}
+    .muted{color:#666;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <h1>開啟 SwitchBot</h1>
+  <p>若未自動跳轉，請點下面按鈕：</p>
+  <p><a class="btn" id="a1" href="switchbot://">switchbot://</a></p>
+  <p><a class="btn" id="a2" href="wohand://">wohand://</a></p>
+  <p><a class="btn" id="a3" href="switch-bot://">switch-bot://</a></p>
+  <p><a class="btn" id="a4" href="com.wohand.wohand://">com.wohand.wohand://</a></p>
+  <p class="muted">Telegram 無法直接放 App 自訂網址，必須經由此頁轉開。</p>
+  <script>
+    const schemes = [
+      'switchbot://',
+      'wohand://',
+      'switch-bot://',
+      'com.wohand.wohand://',
+      'smartlife://',
+    ];
+    let i = 0;
+    function tryNext() {
+      if (i >= schemes.length) return;
+      const u = schemes[i++];
+      // iframe trick + location — some iOS versions need user gesture; still try auto
+      const ifr = document.createElement('iframe');
+      ifr.style.display = 'none';
+      ifr.src = u;
+      document.body.appendChild(ifr);
+      setTimeout(() => { window.location.href = u; }, 80);
+      setTimeout(tryNext, 500);
+    }
+    tryNext();
+  </script>
+</body>
+</html>
