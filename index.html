@@ -2,31 +2,30 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>開啟 SwitchBot</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:1.5rem;line-height:1.45;background:#f6f7f8;color:#111}
     h1{font-size:1.35rem;margin:0 0 .75rem}
-    .btn{display:block;text-align:center;padding:1rem 1.1rem;margin:.55rem 0;background:#11a36a;color:#fff;text-decoration:none;border-radius:12px;font-size:1.15rem;font-weight:600}
-    .btn.alt{background:#1f6feb}
+    .btn{display:block;width:100%;box-sizing:border-box;text-align:center;padding:1rem 1.1rem;margin:.55rem 0;border:0;border-radius:12px;font-size:1.15rem;font-weight:600;text-decoration:none;cursor:pointer}
+    .open{background:#11a36a;color:#fff}
+    .close{background:#333;color:#fff}
+    .alt{background:#1f6feb;color:#fff}
     .muted{color:#666;font-size:.9rem;margin-top:1rem}
+    #hint{color:#b00;font-size:.95rem;min-height:1.2em}
   </style>
 </head>
 <body>
   <h1>開啟 SwitchBot</h1>
-  <p id="status">正在開啟 SwitchBot…</p>
-  <a class="btn" id="main" href="switchbot://">開啟 SwitchBot</a>
-  <a class="btn alt" href="wohand://">開啟（備用 wohand://）</a>
-  <a class="btn alt" href="switch-bot://">開啟（備用 switch-bot://）</a>
-  <p class="muted">若已跳到 SwitchBot，此視窗應會自動關閉；沒關再點左上角關閉即可。</p>
+  <p>點綠色按鈕開啟 App；回來後可點黑色「關閉視窗」。</p>
+  <a class="btn open" href="switchbot://">開啟 SwitchBot</a>
+  <button class="btn close" type="button" id="closeBtn">關閉視窗</button>
+  <p id="hint"></p>
+  <a class="btn alt" href="wohand://">備用 wohand://</a>
+  <p class="muted">若「關閉視窗」無效，請用瀏覽器左上角 ✕（Telegram 內建瀏覽器有時不允許網頁自己關）。</p>
   <script>
     const schemes = ['switchbot://', 'wohand://', 'switch-bot://'];
-    const tg = window.Telegram && window.Telegram.WebApp;
-    const isTg = !!(tg && tg.initData !== undefined);
-
     function openScheme(u) {
-      // Prefer navigating; also poke a hidden iframe (some WebViews need it)
       try {
         const ifr = document.createElement('iframe');
         ifr.style.display = 'none';
@@ -35,37 +34,21 @@
       } catch (e) {}
       try { window.location.href = u; } catch (e) {}
     }
-
-    function closeTgSoon(ms) {
-      if (!isTg || !tg.close) return;
+    function tryClose() {
+      const hint = document.getElementById('hint');
+      try { window.open('', '_self'); } catch (e) {}
+      try { window.close(); } catch (e) {}
+      // last resort: blank page so overlay feels dismissed
       setTimeout(function () {
-        try { tg.close(); } catch (e) {}
-      }, ms);
-      // second attempt — first may race with app switch
-      setTimeout(function () {
-        try { tg.close(); } catch (e) {}
-      }, ms + 700);
+        if (!window.closed) {
+          hint.textContent = '無法自動關閉，請點左上角 ✕';
+          try { document.body.innerHTML = '<p style="font:600 1.2rem/-apple-system;margin:2rem">可點左上角 ✕ 關閉</p>'; } catch (e) {}
+        }
+      }, 200);
     }
-
-    if (isTg) {
-      try { tg.ready(); } catch (e) {}
-      try { tg.expand(); } catch (e) {}
-      document.getElementById('status').textContent = '已從 Telegram 開啟，正在跳轉並自動關閉…';
-      openScheme(schemes[0]);
-      // After handing off to SwitchBot, close this Mini App sheet
-      closeTgSoon(500);
-      // Fallback: try next schemes if still here
-      setTimeout(function () { openScheme(schemes[1]); }, 900);
-      setTimeout(function () { openScheme(schemes[2]); }, 1500);
-      closeTgSoon(1800);
-    } else {
-      document.getElementById('status').textContent = '請點下面按鈕開啟 SwitchBot：';
-      setTimeout(function () { openScheme(schemes[0]); }, 200);
-    }
-
-    document.getElementById('main').addEventListener('click', function () {
-      closeTgSoon(400);
-    });
+    document.getElementById('closeBtn').addEventListener('click', tryClose);
+    // Auto jump to SwitchBot once
+    setTimeout(function () { openScheme(schemes[0]); }, 150);
   </script>
 </body>
 </html>
