@@ -5,26 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>開啟 SwitchBot</title>
   <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:1.5rem;line-height:1.45;background:#f6f7f8;color:#111}
-    h1{font-size:1.35rem;margin:0 0 .75rem}
-    .btn{display:block;width:100%;box-sizing:border-box;text-align:center;padding:1rem 1.1rem;margin:.55rem 0;border:0;border-radius:12px;font-size:1.15rem;font-weight:600;text-decoration:none;cursor:pointer}
-    .open{background:#11a36a;color:#fff}
-    .close{background:#333;color:#fff}
-    .alt{background:#1f6feb;color:#fff}
-    .muted{color:#666;font-size:.9rem;margin-top:1rem}
-    #hint{color:#b00;font-size:.95rem;min-height:1.2em}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+      background:#f6f7f8;color:#111;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:1.5rem;box-sizing:border-box;
+    }
+    .btn{
+      display:block;width:min(100%,420px);
+      text-align:center;
+      padding:1.6rem 1.4rem;
+      border:0;border-radius:18px;
+      font-size:1.55rem;font-weight:700;
+      background:#222;color:#fff;cursor:pointer;
+      box-shadow:0 6px 18px rgba(0,0,0,.18);
+    }
+    #hint{color:#b00;font-size:1rem;margin-top:1.2rem;min-height:1.2em;text-align:center}
   </style>
 </head>
 <body>
-  <h1>開啟 SwitchBot</h1>
-  <p>點綠色按鈕開啟 App；回來後可點黑色「關閉視窗」。</p>
-  <a class="btn open" href="switchbot://">開啟 SwitchBot</a>
-  <button class="btn close" type="button" id="closeBtn">關閉視窗</button>
+  <button class="btn" type="button" id="closeBtn">關閉視窗</button>
   <p id="hint"></p>
-  <a class="btn alt" href="wohand://">備用 wohand://</a>
-  <p class="muted">若「關閉視窗」無效，請用瀏覽器左上角 ✕（Telegram 內建瀏覽器有時不允許網頁自己關）。</p>
   <script>
-    const schemes = ['switchbot://', 'wohand://', 'switch-bot://'];
     function openScheme(u) {
       try {
         const ifr = document.createElement('iframe');
@@ -38,17 +41,14 @@
       const hint = document.getElementById('hint');
       try { window.open('', '_self'); } catch (e) {}
       try { window.close(); } catch (e) {}
-      // last resort: blank page so overlay feels dismissed
       setTimeout(function () {
         if (!window.closed) {
           hint.textContent = '無法自動關閉，請點左上角 ✕';
-          try { document.body.innerHTML = '<p style="font:600 1.2rem/-apple-system;margin:2rem">可點左上角 ✕ 關閉</p>'; } catch (e) {}
         }
       }, 200);
     }
     document.getElementById('closeBtn').addEventListener('click', tryClose);
-    // Auto jump to SwitchBot once
-    setTimeout(function () { openScheme(schemes[0]); }, 150);
+    setTimeout(function () { openScheme('switchbot://'); }, 150);
   </script>
 </body>
 </html>
