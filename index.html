@@ -5,40 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>開啟 SwitchBot</title>
   <style>
-    body{font-family:-apple-system,sans-serif;margin:2rem;line-height:1.5}
-    a.btn{display:inline-block;padding:.9rem 1.2rem;margin:.4rem 0;background:#0b6;color:#fff;text-decoration:none;border-radius:10px;font-size:1.1rem}
-    .muted{color:#666;font-size:.9rem}
+    body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:1.5rem;line-height:1.45;background:#f6f7f8;color:#111}
+    h1{font-size:1.35rem;margin:0 0 .75rem}
+    .btn{display:block;text-align:center;padding:1rem 1.1rem;margin:.55rem 0;background:#11a36a;color:#fff;text-decoration:none;border-radius:12px;font-size:1.15rem;font-weight:600}
+    .btn.alt{background:#1f6feb}
+    .muted{color:#666;font-size:.9rem;margin-top:1rem}
   </style>
 </head>
 <body>
   <h1>開啟 SwitchBot</h1>
-  <p>若未自動跳轉，請點下面按鈕：</p>
-  <p><a class="btn" id="a1" href="switchbot://">switchbot://</a></p>
-  <p><a class="btn" id="a2" href="wohand://">wohand://</a></p>
-  <p><a class="btn" id="a3" href="switch-bot://">switch-bot://</a></p>
-  <p><a class="btn" id="a4" href="com.wohand.wohand://">com.wohand.wohand://</a></p>
-  <p class="muted">Telegram 無法直接放 App 自訂網址，必須經由此頁轉開。</p>
+  <p>Telegram 不能直接開 App，請點下面按鈕（會嘗試喚起已安裝的 SwitchBot）：</p>
+  <a class="btn" href="switchbot://">開啟 SwitchBot</a>
+  <a class="btn alt" href="wohand://">開啟（備用 wohand://）</a>
+  <a class="btn alt" href="switch-bot://">開啟（備用 switch-bot://）</a>
+  <p class="muted">若三個都沒反應，代表 App 沒有公開網址協定，需改用 iOS「捷徑」或 SwitchBot API。</p>
   <script>
-    const schemes = [
-      'switchbot://',
-      'wohand://',
-      'switch-bot://',
-      'com.wohand.wohand://',
-      'smartlife://',
-    ];
+    // Best-effort auto open (Telegram in-app browser may block; buttons still work)
+    const schemes = ['switchbot://', 'wohand://', 'switch-bot://'];
     let i = 0;
-    function tryNext() {
+    function kick() {
       if (i >= schemes.length) return;
       const u = schemes[i++];
-      // iframe trick + location — some iOS versions need user gesture; still try auto
-      const ifr = document.createElement('iframe');
-      ifr.style.display = 'none';
-      ifr.src = u;
-      document.body.appendChild(ifr);
-      setTimeout(() => { window.location.href = u; }, 80);
-      setTimeout(tryNext, 500);
+      try { window.location.href = u; } catch (e) {}
+      setTimeout(kick, 600);
     }
-    tryNext();
+    setTimeout(kick, 200);
   </script>
 </body>
 </html>
